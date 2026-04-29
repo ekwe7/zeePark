@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: zeepark-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: zeepark
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - zeepark-net
+
+  zeepark-app:
+    build: .
+    container_name: zeepark-app
+    restart: unless-stopped
+    ports:
+      - "8181:8181"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/zeepark
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_SECRET: ${PAYPAL_SECRET}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+    depends_on:
+      - mongodb
+    networks:
+      - zeepark-net
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  zeepark-net:
+    driver: bridge
