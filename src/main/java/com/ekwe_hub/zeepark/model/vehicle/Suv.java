@@ -13,9 +13,9 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Document(collection = "vehicles")
-public class SUV extends Vehicle{
+public class Suv extends Vehicle {
 
-    public SUV(String numberPlate){
+    public Suv(String numberPlate) {
         setNumberPlate(numberPlate);
         setType(VehicleType.SUV);
     }

@@ -1,4 +1,22 @@
 package com.ekwe_hub.zeepark.model.user;
 
-public class Staff {
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@Document(collection = "users")
+public class Staff extends User {
+
+    public Staff(String username, String password, String email) {
+        setUsername(username);
+        setPassword(password);
+        setEmail(email);
+        setRole(UserRole.STAFF);
+    }
 }

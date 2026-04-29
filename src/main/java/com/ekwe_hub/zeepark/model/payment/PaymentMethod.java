@@ -1,4 +1,7 @@
 package com.ekwe_hub.zeepark.model.payment;
 
-public class PaymentMethod {
+public enum PaymentMethod {
+    MASTERCARD,
+    PAYPAL,
+    BINANCE
 }

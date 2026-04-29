@@ -1,4 +1,9 @@
 package com.ekwe_hub.zeepark.model.payment;
 
-public record PaymentRequest() {
+import java.math.BigDecimal;
+
+public record PaymentRequest(
+        BigDecimal amount,
+        String currency,
+        String description) {
 }
