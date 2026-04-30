@@ -1,4 +1,7 @@
 package com.ekwe_hub.zeepark.dto.response;
 
-public record ErrorResponse() {
+import java.time.LocalDateTime;
+
+public record ErrorResponse
+        (LocalDateTime timeStamp, int status, String message, String error, String path) {
 }
