@@ -1,4 +1,6 @@
 package com.ekwe_hub.zeepark.dto.request;
 
-public record VehicleRegistrationRequest() {
+import com.ekwe_hub.zeepark.model.vehicle.VehicleType;
+
+public record VehicleRegistrationRequest(String numberPlate, VehicleType type) {
 }
