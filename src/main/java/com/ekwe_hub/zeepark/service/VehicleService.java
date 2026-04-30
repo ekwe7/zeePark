@@ -1,4 +1,13 @@
 package com.ekwe_hub.zeepark.service;
 
-public class VehicleService {
+import com.ekwe_hub.zeepark.dto.request.VehicleRegistrationRequest;
+import com.ekwe_hub.zeepark.model.vehicle.Vehicle;
+
+import java.util.List;
+
+public interface VehicleService {
+    Vehicle registerVehicle(VehicleRegistrationRequest request);
+    Vehicle findByNumberPlate(String numberPlate);
+    List<Vehicle> findAll();
+    void deleteByNumberPlate(String numberPlate);
 }
