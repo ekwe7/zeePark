@@ -1,4 +1,11 @@
 package com.ekwe_hub.zeepark.dto.response;
 
-public record VehicleResponse() {
-}
+import com.ekwe_hub.zeepark.model.vehicle.VehicleType;
+
+import java.math.BigDecimal;
+
+public record VehicleResponse(
+        String numberPlate,
+        VehicleType type,
+        BigDecimal baseRate
+) {}

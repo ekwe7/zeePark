@@ -1,4 +1,9 @@
 package com.ekwe_hub.zeepark.dto.response;
 
-public record TicketResponse() {
-}
+import java.time.LocalDateTime;
+
+public record TicketResponse(
+        String id,
+        String sessionId,
+        LocalDateTime issuedAt
+) {}
