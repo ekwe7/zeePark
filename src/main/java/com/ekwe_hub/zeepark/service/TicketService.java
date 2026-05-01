@@ -1,4 +1,10 @@
 package com.ekwe_hub.zeepark.service;
 
-public class TicketService {
+import com.ekwe_hub.zeepark.model.parking.Ticket;
+
+import java.util.List;
+
+public interface TicketService {
+    Ticket findBySessionId(String sessionId);
+    List<Ticket> findAll();
 }
