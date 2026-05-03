@@ -9,7 +9,10 @@ public class PaymentMapper {
                 payment.getId(),
                 payment.getSessionId(),
                 payment.getAmount(),
+                payment.getCurrency(),
                 payment.getMethod(),
+                payment.getStatus(),
+                payment.getCheckoutUrl(),
                 payment.getPaidAt(),
                 payment.getTransactionId()
         );

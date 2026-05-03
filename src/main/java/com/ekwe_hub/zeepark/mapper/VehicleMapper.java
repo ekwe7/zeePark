@@ -6,6 +6,7 @@ import com.ekwe_hub.zeepark.model.vehicle.Vehicle;
 public class VehicleMapper {
     public static VehicleResponse toDto(Vehicle vehicle) {
         return new VehicleResponse(
+                vehicle.getId(),
                 vehicle.getNumberPlate(),
                 vehicle.getType(),
                 vehicle.calculateBasePrice()

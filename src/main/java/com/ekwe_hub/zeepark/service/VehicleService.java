@@ -9,5 +9,6 @@ public interface VehicleService {
     Vehicle registerVehicle(VehicleRegistrationRequest request);
     Vehicle findByNumberPlate(String numberPlate);
     List<Vehicle> findAll();
+    List<Vehicle> findByCustomerId(String customerId);
     void deleteByNumberPlate(String numberPlate);
 }
