@@ -1,4 +1,8 @@
 package com.ekwe_hub.zeepark.event;
 
-public record ParkingSessionStartedEvent() {
-}
+import java.time.LocalDateTime;
+
+public record ParkingSessionStartedEvent(
+        String sessionId,
+        String vehicleId,
+        LocalDateTime entryTime) {}
