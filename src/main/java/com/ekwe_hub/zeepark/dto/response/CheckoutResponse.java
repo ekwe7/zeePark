@@ -1,4 +1,4 @@
 package com.ekwe_hub.zeepark.dto.response;
 
-public record CheckoutResponse() {
+public record CheckoutResponse(String paymentId, String checkoutUrl) {
 }

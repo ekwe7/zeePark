@@ -1,4 +1,7 @@
 package com.ekwe_hub.zeepark.dto.request;
 
-public record TicketRequest() {
-}
+import jakarta.validation.constraints.NotBlank;
+
+public record TicketRequest(
+        @NotBlank String sessionId
+) {}
