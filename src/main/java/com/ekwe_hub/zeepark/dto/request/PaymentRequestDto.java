@@ -6,5 +6,6 @@ import jakarta.validation.constraints.NotNull;
 
 public record PaymentRequestDto(
         @NotBlank String sessionId,
-        @NotNull PaymentMethod method
+        @NotNull PaymentMethod method,
+        String email
 ) {}
