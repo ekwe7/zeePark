@@ -16,8 +16,15 @@ import java.time.LocalDateTime;
 public class Payment extends BaseDocument {
     private String sessionId;
     private BigDecimal amount;
-    private String currency;
+    private String currency = "USD";
     private PaymentMethod method;
+
+    // Checkout flow additions
+    private String checkoutUrl;          // URL the user should be redirected to
+    private PaymentStatus status = PaymentStatus.PENDING;
+    private String providerTransactionId; // received from webhook / checkout
     private LocalDateTime paidAt;
+
+    // Keep old field for backward compatibility (if needed)
     private String transactionId;
 }
