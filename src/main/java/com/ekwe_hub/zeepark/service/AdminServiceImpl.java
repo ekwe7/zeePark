@@ -40,6 +40,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public void deleteZone(String zoneId) {
+        ParkingZone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(() -> new ResourceNotFoundException("Zone not found with ID: " + zoneId));
+        zoneRepository.delete(zone);
+    }
+
+    @Override
     public SpotCategory createSpotCategory(SpotCategoryRequest request) {
         SpotCategory category = new SpotCategory();
         category.setType(request.type());
@@ -49,6 +56,19 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<SpotCategory> findAllSpotCategories() {
         return categoryRepository.findAll();
+    }
+
+    @Override
+    public ParkingSpot createSpot(String zoneId, String categoryId) {
+        ParkingSpot spot = new ParkingSpot();
+        spot.setZoneId(zoneId);
+        spot.setAvailable(true);
+        return spotRepository.save(spot);
+    }
+
+    @Override
+    public List<ParkingSpot> findAllSpots() {
+        return spotRepository.findAll();
     }
 
     @Override
