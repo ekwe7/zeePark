@@ -1,31 +1,35 @@
 package com.ekwe_hub.zeepark.service;
 
+import com.ekwe_hub.zeepark.dto.response.CheckoutResponse;
 import com.ekwe_hub.zeepark.event.PaymentCompletedEvent;
 import com.ekwe_hub.zeepark.exception.PaymentFailedException;
 import com.ekwe_hub.zeepark.exception.ResourceNotFoundException;
 import com.ekwe_hub.zeepark.model.parking.ParkingSession;
 import com.ekwe_hub.zeepark.model.parking.SessionStatus;
-import com.ekwe_hub.zeepark.model.payment.Payment;
-import com.ekwe_hub.zeepark.model.payment.PaymentMethod;
-import com.ekwe_hub.zeepark.model.payment.PaymentRequest;
-import com.ekwe_hub.zeepark.model.payment.TransactionResult;
+import com.ekwe_hub.zeepark.model.payment.*;
 import com.ekwe_hub.zeepark.model.vehicle.Vehicle;
 import com.ekwe_hub.zeepark.repository.ParkingSessionRepository;
 import com.ekwe_hub.zeepark.repository.PaymentRepository;
 import com.ekwe_hub.zeepark.repository.VehicleRepository;
 import com.ekwe_hub.zeepark.service.payment.PaymentGateway;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     private final Map<String, PaymentGateway> gateways;
@@ -34,11 +38,14 @@ public class PaymentServiceImpl implements PaymentService {
     private final VehicleRepository vehicleRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    private static final String CURRENCY = "USD";
+    @Value("${payment.flutterwave.secret-key:}")
+    private String flwSecretKey;
+
+    private static final String CURRENCY = "NGN";
 
     @Override
     @Transactional
-    public Payment processPayment(String sessionId, PaymentMethod method) {
+    public CheckoutResponse initiatePayment(String sessionId, PaymentMethod method, String email) {
         ParkingSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found: " + sessionId));
 
@@ -49,39 +56,81 @@ public class PaymentServiceImpl implements PaymentService {
         Vehicle vehicle = vehicleRepository.findById(session.getVehicleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found for session: " + sessionId));
 
-        // Rate: basePrice per hour, prorated by minutes
         BigDecimal basePrice = vehicle.calculateBasePrice();
         BigDecimal amount = basePrice
                 .multiply(BigDecimal.valueOf(session.getDuration()))
-                .divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
 
-        PaymentGateway gateway = gateways.get(method.name().toLowerCase());
+        String gatewayKey = method.name().toLowerCase();
+        PaymentGateway gateway = gateways.get(gatewayKey);
         if (gateway == null) {
             throw new IllegalArgumentException("Unsupported payment method: " + method);
         }
 
         TransactionResult result = gateway.charge(
-                new PaymentRequest(amount, CURRENCY, "Parking session " + sessionId)
+                new PaymentRequest(amount, CURRENCY, "ZeePark session " + sessionId, email)
         );
 
         if (!result.success()) {
-            throw new PaymentFailedException(result.message());
+            throw new PaymentFailedException("Payment initiation failed: " + result.message());
         }
 
+        // Save payment as PENDING with checkout URL
         Payment payment = new Payment();
         payment.setSessionId(sessionId);
         payment.setAmount(amount);
         payment.setCurrency(CURRENCY);
         payment.setMethod(method);
-        payment.setPaidAt(LocalDateTime.now());
-        payment.setTransactionId(result.transactionId());
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setCheckoutUrl(result.message()); // message holds the checkout URL
+        payment.setTransactionId(result.transactionId()); // tx_ref
         Payment saved = paymentRepository.save(payment);
 
-        eventPublisher.publishEvent(new PaymentCompletedEvent(
-                saved.getId(), sessionId, amount
-        ));
+        return new CheckoutResponse(saved.getId(), result.message());
+    }
 
-        return saved;
+    @Override
+    @Transactional
+    public Payment verifyPayment(String transactionId, String txRef) {
+        // Verify with Flutterwave
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(flwSecretKey);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    "https://api.flutterwave.com/v3/transactions/" + transactionId + "/verify",
+                    HttpMethod.GET, entity, Map.class
+            );
+
+            Map<String, Object> body = response.getBody();
+            if (body != null && "success".equals(body.get("status"))) {
+                Map<String, Object> data = (Map<String, Object>) body.get("data");
+                String status = (String) data.get("status");
+
+                Payment payment = paymentRepository.findByTransactionId(txRef)
+                        .orElseThrow(() -> new ResourceNotFoundException("Payment not found for tx_ref: " + txRef));
+
+                if ("successful".equals(status)) {
+                    payment.setStatus(PaymentStatus.COMPLETED);
+                    payment.setPaidAt(LocalDateTime.now());
+                    payment.setProviderTransactionId(transactionId);
+                    paymentRepository.save(payment);
+
+                    eventPublisher.publishEvent(new PaymentCompletedEvent(
+                            payment.getId(), payment.getSessionId(), payment.getAmount()
+                    ));
+                } else {
+                    payment.setStatus(PaymentStatus.FAILED);
+                    paymentRepository.save(payment);
+                }
+                return payment;
+            }
+        } catch (Exception e) {
+            log.error("Flutterwave verification error: {}", e.getMessage());
+        }
+        throw new PaymentFailedException("Could not verify payment");
     }
 
     @Override

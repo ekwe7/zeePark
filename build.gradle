@@ -27,6 +27,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter'
 
+    implementation 'com.stripe:stripe-java:24.22.0'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

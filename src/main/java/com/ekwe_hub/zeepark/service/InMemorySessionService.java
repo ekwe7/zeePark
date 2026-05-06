@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class InMemorySessionService implements SessionService {
 
-    private static final long SESSION_TIMEOUT_MS = 5 * 60 * 1000;
+    private static final long SESSION_TIMEOUT_MS = 2 * 60 * 1000;
 
     private record SessionEntry(User user, Instant lastActivity) {}
 
