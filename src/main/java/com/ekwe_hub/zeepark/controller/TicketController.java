@@ -30,4 +30,11 @@ public class TicketController {
                 .map(TicketMapper::toDto)
                 .toList();
     }
+
+    @GetMapping("/my/{customerId}")
+    public List<TicketResponse> getMyTickets(@PathVariable String customerId) {
+        return ticketService.findByCustomerId(customerId).stream()
+                .map(TicketMapper::toDto)
+                .toList();
+    }
 }

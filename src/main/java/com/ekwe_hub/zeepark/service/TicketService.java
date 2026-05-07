@@ -6,5 +6,8 @@ import java.util.List;
 
 public interface TicketService {
     Ticket findBySessionId(String sessionId);
+
+    List<Ticket> findByCustomerId(String customerId);
+
     List<Ticket> findAll();
 }

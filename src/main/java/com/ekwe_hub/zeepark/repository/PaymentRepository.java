@@ -9,6 +9,10 @@ import java.util.Optional;
 
 public interface PaymentRepository extends MongoRepository<Payment, String> {
     Optional<Payment> findBySessionId(String sessionId);
+
     Optional<Payment> findByTransactionId(String transactionId);
+
+    List<Payment> findBySessionIdIn(List<String> sessionIds);
+
     List<Payment> findByPaidAtBetween(LocalDateTime start, LocalDateTime end);
 }

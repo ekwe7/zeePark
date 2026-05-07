@@ -25,8 +25,7 @@ public class PaymentController {
         return paymentService.initiatePayment(
                 request.sessionId(),
                 request.method(),
-                request.email()
-        );
+                request.email());
     }
 
     // Called after user completes payment on provider page
@@ -42,6 +41,14 @@ public class PaymentController {
     public PaymentResponse getPaymentBySession(@PathVariable String sessionId) {
         Payment payment = paymentService.findBySessionId(sessionId);
         return PaymentMapper.toDto(payment);
+    }
+
+    // Returns only payments belonging to a specific customer
+    @GetMapping("/my/{customerId}")
+    public List<PaymentResponse> getMyPayments(@PathVariable String customerId) {
+        return paymentService.findByCustomerId(customerId).stream()
+                .map(PaymentMapper::toDto)
+                .toList();
     }
 
     @GetMapping

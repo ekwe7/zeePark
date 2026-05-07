@@ -8,8 +8,10 @@ import com.ekwe_hub.zeepark.model.parking.ParkingSession;
 import com.ekwe_hub.zeepark.model.parking.SessionStatus;
 import com.ekwe_hub.zeepark.model.payment.*;
 import com.ekwe_hub.zeepark.model.vehicle.Vehicle;
+import com.ekwe_hub.zeepark.model.user.Customer;
 import com.ekwe_hub.zeepark.repository.ParkingSessionRepository;
 import com.ekwe_hub.zeepark.repository.PaymentRepository;
+import com.ekwe_hub.zeepark.repository.UserRepository;
 import com.ekwe_hub.zeepark.repository.VehicleRepository;
 import com.ekwe_hub.zeepark.service.payment.PaymentGateway;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ParkingSessionRepository sessionRepository;
     private final VehicleRepository vehicleRepository;
+    private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Value("${payment.flutterwave.secret-key:}")
@@ -68,8 +71,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         TransactionResult result = gateway.charge(
-                new PaymentRequest(amount, CURRENCY, "ZeePark session " + sessionId, email)
-        );
+                new PaymentRequest(amount, CURRENCY, "ZeePark session " + sessionId, email));
 
         if (!result.success()) {
             throw new PaymentFailedException("Payment initiation failed: " + result.message());
@@ -101,8 +103,7 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
                     "https://api.flutterwave.com/v3/transactions/" + transactionId + "/verify",
-                    HttpMethod.GET, entity, Map.class
-            );
+                    HttpMethod.GET, entity, Map.class);
 
             Map<String, Object> body = response.getBody();
             if (body != null && "success".equals(body.get("status"))) {
@@ -119,8 +120,7 @@ public class PaymentServiceImpl implements PaymentService {
                     paymentRepository.save(payment);
 
                     eventPublisher.publishEvent(new PaymentCompletedEvent(
-                            payment.getId(), payment.getSessionId(), payment.getAmount()
-                    ));
+                            payment.getId(), payment.getSessionId(), payment.getAmount()));
                 } else {
                     payment.setStatus(PaymentStatus.FAILED);
                     paymentRepository.save(payment);
@@ -137,6 +137,25 @@ public class PaymentServiceImpl implements PaymentService {
     public Payment findBySessionId(String sessionId) {
         return paymentRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("No payment found for session: " + sessionId));
+    }
+
+    @Override
+    public List<Payment> findByCustomerId(String customerId) {
+        // Get customer's vehicle IDs
+        return userRepository.findById(customerId)
+                .filter(u -> u instanceof Customer)
+                .map(u -> {
+                    List<String> vehicleIds = ((Customer) u).getVehicles().stream()
+                            .map(v -> v.getId())
+                            .toList();
+                    // Get sessions for those vehicles
+                    List<String> sessionIds = sessionRepository.findByVehicleIdIn(vehicleIds).stream()
+                            .map(s -> s.getId())
+                            .toList();
+                    // Get payments for those sessions
+                    return paymentRepository.findBySessionIdIn(sessionIds);
+                })
+                .orElse(List.of());
     }
 
     @Override
