@@ -6,25 +6,25 @@ public enum VehicleType {
     BICYCLE {
         @Override
         public BigDecimal getBasePrice() {
-            return BigDecimal.valueOf(850.00);
+            return BigDecimal.valueOf(50.00);
         }
     },
     SUV {
         @Override
         public BigDecimal getBasePrice() {
-            return BigDecimal.valueOf(1000.00);
+            return BigDecimal.valueOf(150.00);
         }
     },
     CAR {
         @Override
         public BigDecimal getBasePrice() {
-            return BigDecimal.valueOf(1200.00);
+            return BigDecimal.valueOf(100.00);
         }
     },
     EV {
         @Override
         public BigDecimal getBasePrice() {
-            return BigDecimal.valueOf(1500.00);
+            return BigDecimal.valueOf(90.00);
         }
     };
 
