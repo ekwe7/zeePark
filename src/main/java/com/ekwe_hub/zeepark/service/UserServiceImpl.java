@@ -8,6 +8,7 @@ import com.ekwe_hub.zeepark.exception.UnauthorizedException;
 import com.ekwe_hub.zeepark.model.user.*;
 import com.ekwe_hub.zeepark.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,13 +19,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final SessionService sessionService;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
-        if (!user.getPassword().equals(request.password())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UnauthorizedException("Invalid credentials");
         }
 
@@ -34,10 +36,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(RegisterUserRequest request) {
+        String hashedPassword = passwordEncoder.encode(request.password());
         User user = switch (request.role()) {
-            case ADMIN -> new Admin(request.username(), request.password(), request.email());
-            case CUSTOMER -> new Customer(request.username(), request.password(), request.email());
-            case STAFF -> new Staff(request.username(), request.password(), request.email());
+            case ADMIN -> new Admin(request.username(), hashedPassword, request.email());
+            case CUSTOMER -> new Customer(request.username(), hashedPassword, request.email());
+            case STAFF -> new Staff(request.username(), hashedPassword, request.email());
         };
         return userRepository.save(user);
     }
