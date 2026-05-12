@@ -21,10 +21,15 @@ public class MongoConfig {
 
     @PostConstruct
     public void createTtlIndex() {
-        // TTL index on user_sessions.expiresAt — MongoDB auto-deletes expired sessions
-        mongoTemplate.indexOps("user_sessions")
-                .createIndex(new Index()
-                        .on("expiresAt", Sort.Direction.ASC)
-                        .expire(Duration.ZERO));
+        try {
+            // TTL index on user_sessions.expiresAt — MongoDB auto-deletes expired sessions
+            mongoTemplate.indexOps("user_sessions")
+                    .createIndex(new Index()
+                            .on("expiresAt", Sort.Direction.ASC)
+                            .expire(Duration.ZERO)
+                            .named("expiresAt_ttl"));
+        } catch (Exception e) {
+            // Index already exists — safe to ignore
+        }
     }
 }

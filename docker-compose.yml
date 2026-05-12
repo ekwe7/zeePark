@@ -15,17 +15,21 @@ services:
       - zeepark-net
 
   zeepark-app:
-    build: .
+    # UPDATED: Matches the username, repo, and tag you just pushed
+    image: ekwe7/zeepark-server:1.0   
     container_name: zeepark-app
     restart: unless-stopped
     ports:
       - "8181:8181"
     environment:
+      # Standard Spring Boot variable + your custom one
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/zeepark
       MONGODB_URI: mongodb://mongodb:27017/zeepark
-      STRIPE_API_KEY: ${STRIPE_API_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      MASTERCARD_API_KEY: ${MASTERCARD_API_KEY}
-      MASTERCARD_MERCHANT_ID: ${MASTERCARD_MERCHANT_ID}
+      FLW_PUBLIC_KEY: ${FLW_PUBLIC_KEY}
+      FLW_SECRET_KEY: ${FLW_SECRET_KEY}
+      FLW_REDIRECT_URL: ${FLW_REDIRECT_URL:-zeepark://payment/success}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_SECRET: ${PAYPAL_SECRET}
     depends_on:
       - mongodb
     networks:

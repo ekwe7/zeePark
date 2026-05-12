@@ -3,7 +3,6 @@ package com.ekwe_hub.zeepark.model.session;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -20,8 +19,7 @@ public class UserSession {
     private String username;
     private String role;
 
-    @Indexed
-    private Instant expiresAt;
+    private Instant expiresAt; // TTL index managed by MongoConfig
 
     private Instant lastActivity;
 

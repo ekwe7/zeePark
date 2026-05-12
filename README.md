@@ -147,19 +147,6 @@ Tokens are obtained from `POST /api/auth/login` and stored in MongoDB (`user_ses
 
 ---
 
-## Vehicle Types & Pricing
-
-| Type | Base Rate (per hour) |
-|---|---|
-| BICYCLE | ₦850 |
-| SUV | ₦1,000 |
-| CAR | ₦1,200 |
-| EV | ₦1,500 |
-
-Payment amount = `baseRate × duration (minutes) ÷ 60`
-
----
-
 ## Data Models
 
 ### User Roles
