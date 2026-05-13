@@ -150,7 +150,7 @@ public class PaymentServiceImpl implements PaymentService {
                             .toList();
                     // Get sessions for those vehicles
                     List<String> sessionIds = sessionRepository.findByVehicleIdIn(vehicleIds).stream()
-                            .map(s -> s.getId())
+                            .map(s -> s.getUserId())
                             .toList();
                     // Get payments for those sessions
                     return paymentRepository.findBySessionIdIn(sessionIds);

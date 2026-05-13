@@ -14,5 +14,6 @@ import java.time.LocalDateTime;
 @Document(collection = "tickets")
 public class Ticket extends BaseDocument {
     private String sessionId;
+    private String vehicleNumberPlate;
     private LocalDateTime issuedAt;
 }

@@ -33,7 +33,7 @@ public class TicketServiceImpl implements TicketService {
                     List<String> vehicleIds = ((Customer) u).getVehicles().stream()
                             .map(v -> v.getId()).toList();
                     List<String> sessionIds = sessionRepository.findByVehicleIdIn(vehicleIds).stream()
-                            .map(s -> s.getId()).toList();
+                            .map(s -> s.getUserId()).toList();
                     return ticketRepository.findBySessionIdIn(sessionIds);
                 })
                 .orElse(List.of());

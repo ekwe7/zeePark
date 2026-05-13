@@ -5,20 +5,25 @@ import com.ekwe_hub.zeepark.model.session.UserSession;
 import com.ekwe_hub.zeepark.model.user.User;
 import com.ekwe_hub.zeepark.repository.UserRepository;
 import com.ekwe_hub.zeepark.repository.UserSessionRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class InMemorySessionService implements SessionService {
 
     private static final long SESSION_TIMEOUT_SECONDS = 2 * 60; // 2 minutes
 
     private final UserSessionRepository sessionRepository;
     private final UserRepository userRepository;
+
+    public InMemorySessionService(@Lazy UserSessionRepository sessionRepository,
+            UserRepository userRepository) {
+        this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public String createSession(User user) {

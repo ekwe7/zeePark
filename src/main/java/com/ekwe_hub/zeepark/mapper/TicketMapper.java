@@ -8,9 +8,7 @@ public class TicketMapper {
         return new TicketResponse(
                 ticket.getId(),
                 ticket.getSessionId(),
-                ticket.getIssuedAt()
-        );
-
+                ticket.getVehicleNumberPlate(),
+                ticket.getIssuedAt());
     }
-
 }

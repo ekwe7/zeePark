@@ -10,7 +10,9 @@ import java.util.Optional;
 public interface ParkingSessionRepository extends MongoRepository<ParkingSession, String> {
     List<ParkingSession> findByVehicleIdAndStatus(String vehicleId, SessionStatus status);
 
-    List<ParkingSession> findByVehicleIdIn(List<String> vehicleIds);
+    List<ParkingSession> findByUserIdAndStatus(String userId, SessionStatus status);
 
-    Optional<ParkingSession> findByIdAndStatus(String id, SessionStatus status);
+    Optional<ParkingSession> findByVehicleIdAndStatusAndUserId(String vehicleId, SessionStatus status, String userId);
+
+    List<ParkingSession> findByVehicleIdIn(List<String> vehicleIds);
 }

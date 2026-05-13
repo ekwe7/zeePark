@@ -6,13 +6,12 @@ import com.ekwe_hub.zeepark.model.parking.ParkingSession;
 public class ParkingMapper {
     public static ParkingSessionResponse toDto(ParkingSession session) {
         return new ParkingSessionResponse(
-                session.getId(),
+                session.getUserId(),
                 session.getVehicleId(),
                 session.getSpotId(),
                 session.getEntryTime(),
                 session.getExitTime(),
                 session.getStatus(),
-                session.getDuration()
-        );
+                session.getDuration());
     }
 }

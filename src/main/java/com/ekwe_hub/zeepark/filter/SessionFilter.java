@@ -1,6 +1,7 @@
-package com.ekwe_hub.zeepark.filter;                     // <-- no "security"
+package com.ekwe_hub.zeepark.filter; // <-- no "security"
 
 import com.ekwe_hub.zeepark.exception.UnauthorizedException;
+import com.ekwe_hub.zeepark.model.user.User;
 import com.ekwe_hub.zeepark.service.SessionService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import java.io.IOException;
 @Component
 public class SessionFilter implements Filter {
 
+    public static final String AUTHENTICATED_USER_ATTR = "authenticatedUser";
     private final SessionService sessionService;
 
     public SessionFilter(SessionService sessionService) {
@@ -20,7 +22,7 @@ public class SessionFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain) throws IOException, ServletException {
+            FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpReq = (HttpServletRequest) request;
         HttpServletResponse httpRes = (HttpServletResponse) response;
 
@@ -41,8 +43,9 @@ public class SessionFilter implements Filter {
 
         String token = authHeader.substring(7);
         try {
-            sessionService.getAuthenticatedUser(token);   // throws if invalid
-            chain.doFilter(request, response);            // proceed
+            User user = sessionService.getAuthenticatedUser(token); // throws if invalid
+            httpReq.setAttribute(AUTHENTICATED_USER_ATTR, user);
+            chain.doFilter(request, response); // proceed
         } catch (UnauthorizedException e) {
             httpRes.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpRes.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
