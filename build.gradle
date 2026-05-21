@@ -48,3 +48,12 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+compileJava {
+    targetCompatibility = '21'
+    sourceCompatibility = '21'
+}
+
+compileJava {
+    targetCompatibility = '21'
+    sourceCompatibility = '21'
+}
