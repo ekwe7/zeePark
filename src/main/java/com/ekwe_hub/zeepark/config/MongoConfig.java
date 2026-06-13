@@ -1,28 +1,39 @@
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+package com.ekwe_hub.zeepark.config;
+
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+
+import java.time.Duration;
 
 @Configuration
 @EnableMongoRepositories(basePackages = "com.ekwe_hub.zeepark.repository")
 @EnableMongoAuditing
-public class MongoConfig extends AbstractMongoClientConfiguration {
+@RequiredArgsConstructor
+public class MongoConfig {
 
-    @Value("${spring.data.mongodb.uri:mongodb://localhost:27017/zeepark}")
-    private String mongoUri;
+    private final MongoTemplate mongoTemplate;
 
-    @Override
-    protected String getDatabaseName() {
-        return "zeepark";
-    }
+    @PostConstruct
+    public void createTtlIndex() {
+        try {
+            mongoTemplate.indexOps("user_sessions").dropIndex("expiresAt");
+        } catch (Exception ignored) {
+        }
+        try {
+            mongoTemplate.indexOps("user_sessions").dropIndex("expiresAt_ttl");
+        } catch (Exception ignored) {
+        }
 
-    @Override
-    @Bean
-    public MongoClient mongoClient() {
-        return MongoClients.create(mongoUri);
+        mongoTemplate.indexOps("user_sessions")
+                .createIndex(new Index()
+                        .on("expiresAt", Sort.Direction.ASC)
+                        .expire(Duration.ZERO)
+                        .named("expiresAt_ttl"));
     }
 }
