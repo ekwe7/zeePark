@@ -30,6 +30,14 @@ public class DatabaseInitializer {
 
     private void createUserSessionTtlIndex() {
         try {
+            mongoTemplate.indexOps("user_sessions").dropIndex("expiresAt");
+        } catch (Exception ignored) {
+        }
+        try {
+            mongoTemplate.indexOps("user_sessions").dropIndex("expiresAt_ttl");
+        } catch (Exception ignored) {
+        }
+        try {
             mongoTemplate.indexOps("user_sessions")
                     .createIndex(new Index()
                             .on("expiresAt", Sort.Direction.ASC)

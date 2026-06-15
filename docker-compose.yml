@@ -1,39 +1,46 @@
 version: '3.8'
 
 services:
-  mongodb:
+  zeepark-mongodb:
     image: mongo:7.0
     container_name: zeepark-mongodb
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    # ports:
+    #  - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: zeepark
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER:-zeepark}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-zeepark123}
+      - MONGO_INITDB_DATABASE=${DB_NAME:-zeepark}
     volumes:
       - mongo_data:/data/db
     networks:
       - zeepark-net
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  zeepark-app:
-    # UPDATED: Matches the username, repo, and tag you just pushed
-    image: ekwe7/zeepark-server:1.0   
-    container_name: zeepark-app
+  zeepark-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ekwe7/zeepark-server:1.0
+    container_name: zeepark-backend
     restart: unless-stopped
     ports:
       - "8181:8181"
     environment:
-      # Standard Spring Boot variable + your custom one
-      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/zeepark
-      MONGODB_URI: mongodb://mongodb:27017/zeepark
-      FLW_PUBLIC_KEY: ${FLW_PUBLIC_KEY}
-      FLW_SECRET_KEY: ${FLW_SECRET_KEY}
-      FLW_REDIRECT_URL: ${FLW_REDIRECT_URL:-zeepark://payment/success}
-      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
-      PAYPAL_SECRET: ${PAYPAL_SECRET}
+      - SPRING_PROFILES_ACTIVE=docker
+      - MONGODB_URI=mongodb://${DB_USER:-zeepark}:${DB_PASSWORD:-zeepark123}@zeepark-mongodb:27017/${DB_NAME:-zeepark}?authSource=admin
+      - SPRING_DATA_MONGODB_URI=mongodb://${DB_USER:-zeepark}:${DB_PASSWORD:-zeepark123}@zeepark-mongodb:27017/${DB_NAME:-zeepark}?authSource=admin
     depends_on:
-      - mongodb
+      zeepark-mongodb:
+        condition: service_healthy
     networks:
       - zeepark-net
+    volumes:
+      - ./logs:/app/logs
 
 volumes:
   mongo_data:
