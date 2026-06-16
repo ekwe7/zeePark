@@ -58,3 +58,4 @@ logs/
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
 hs_err_pid*
+.env

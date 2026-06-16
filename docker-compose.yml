@@ -5,12 +5,10 @@ services:
     image: mongo:7.0
     container_name: zeepark-mongodb
     restart: unless-stopped
-    # ports:
-    #  - "27017:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${DB_USER:-zeepark}
-      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-zeepark123}
-      - MONGO_INITDB_DATABASE=${DB_NAME:-zeepark}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${DB_NAME}
     volumes:
       - mongo_data:/data/db
     networks:
@@ -32,15 +30,13 @@ services:
       - "8181:8181"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - MONGODB_URI=mongodb://${DB_USER:-zeepark}:${DB_PASSWORD:-zeepark123}@zeepark-mongodb:27017/${DB_NAME:-zeepark}?authSource=admin
-      - SPRING_DATA_MONGODB_URI=mongodb://${DB_USER:-zeepark}:${DB_PASSWORD:-zeepark123}@zeepark-mongodb:27017/${DB_NAME:-zeepark}?authSource=admin
+      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@zeepark-mongodb:27017/${DB_NAME}?authSource=admin
+      - SPRING_DATA_MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@zeepark-mongodb:27017/${DB_NAME}?authSource=admin
     depends_on:
       zeepark-mongodb:
         condition: service_healthy
     networks:
       - zeepark-net
-    volumes:
-      - ./logs:/app/logs
 
 volumes:
   mongo_data:
